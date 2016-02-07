@@ -31,8 +31,14 @@ node[:deploy].each do |application, deploy|
 
     bash "nginx-proxy-run" do
         user "root"
-        code <<-EOH
-            docker run -d -p 80:80 -p 443:443 --restart=always --volumes-from #{deploy[:application]} --name nginx-proxy -v /var/run/docker.sock:/tmp/docker.sock jwilder/nginx-proxy:0.1.0
-        EOH
+        if deploy[:environment_variables][:ssl]
+            code <<-EOH
+                docker run -d -p 80:80 -p 443:443 --restart=always --volumes-from #{deploy[:application]} --name nginx-proxy -v /var/run/docker.sock:/tmp/docker.sock jwilder/nginx-proxy:0.1.0
+            EOH
+        else
+            code <<-EOH
+                docker run -d -p 80:80 --restart=always --name nginx-proxy -v /var/run/docker.sock:/tmp/docker.sock jwilder/nginx-proxy:0.1.0
+            EOH
+        end
     end
 end
